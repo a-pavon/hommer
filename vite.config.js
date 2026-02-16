@@ -1,10 +1,9 @@
 import { defineConfig } from "vite";
 
 export default defineConfig({
+  base: "/hommer/",
   server: {
     host: true,
-    // HTTPS is required for camera access on mobile devices
-    // In development, Vite generates a self-signed certificate
   },
   build: {
     outDir: "dist",
