@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <title>AR Camera</title>
+  <link rel="stylesheet" href="/src/styles.css" />
+</head>
+<body>
+  <!-- Camera feed (background layer) -->
+  <video id="camera-feed" autoplay playsinline muted></video>
+
+  <!-- Three.js AR canvas (overlay layer) -->
+  <canvas id="ar-canvas"></canvas>
+
+  <!-- UI overlay -->
+  <div id="ui-overlay">
+    <div id="toolbar">
+      <button id="btn-cube" class="shape-btn active" data-shape="cube" title="Cube">&#9632;</button>
+      <button id="btn-sphere" class="shape-btn" data-shape="sphere" title="Sphere">&#9679;</button>
+      <button id="btn-cylinder" class="shape-btn" data-shape="cylinder" title="Cylinder">&#9644;</button>
+      <button id="btn-torus" class="shape-btn" data-shape="torus" title="Torus">&#9711;</button>
+    </div>
+
+    <div id="color-picker">
+      <button class="color-btn active" data-color="#ff4444" style="background:#ff4444"></button>
+      <button class="color-btn" data-color="#44cc44" style="background:#44cc44"></button>
+      <button class="color-btn" data-color="#4488ff" style="background:#4488ff"></button>
+      <button class="color-btn" data-color="#ffcc00" style="background:#ffcc00"></button>
+      <button class="color-btn" data-color="#ff44ff" style="background:#ff44ff"></button>
+      <button class="color-btn" data-color="#ffffff" style="background:#ffffff"></button>
+    </div>
+
+    <div id="bottom-bar">
+      <button id="btn-clear" title="Clear All">Clear</button>
+      <button id="btn-screenshot" title="Screenshot">Capture</button>
+      <button id="btn-switch-camera" title="Switch Camera">Flip</button>
+    </div>
+
+    <div id="crosshair">+</div>
+  </div>
+
+  <!-- Permission / error screens -->
+  <div id="permission-screen">
+    <div class="permission-card">
+      <h1>AR Camera</h1>
+      <p>This app needs access to your camera to place 3D objects in the real world.</p>
+      <button id="btn-grant-camera">Enable Camera</button>
+    </div>
+  </div>
+
+  <div id="error-screen" class="hidden">
+    <div class="permission-card">
+      <h1>Camera Unavailable</h1>
+      <p id="error-message">Could not access the camera. Please check permissions and try again.</p>
+      <button id="btn-retry">Retry</button>
+    </div>
+  </div>
+
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>
