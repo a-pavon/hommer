@@ -8,47 +8,45 @@
     <style>
         body { margin:0; overflow:hidden; background:#000; font-family:system-ui; }
         #overlay {
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             z-index: 100; display: flex; flex-direction: column;
             align-items: center; justify-content: center;
-            text-align: center; color: white; pointer-events: none;
-            background: rgba(0,0,0,0.4);
+            text-align: center; color: white; background: rgba(0,0,0,0.65);
         }
         #overlay h1 { font-size: 2.8em; margin: 0 0 10px; }
         #overlay p { font-size: 1.2em; max-width: 85%; margin: 8px 0; }
         #arButton {
-            margin-top: 40px; padding: 18px 50px; font-size: 1.4em;
+            margin-top: 40px; padding: 18px 50px; font-size: 1.5em;
             background: #00ff9d; color: #000; border: none;
-            border-radius: 50px; font-weight: bold; box-shadow: 0 10px 30px rgba(0,255,157,0.5);
-            pointer-events: all; cursor: pointer;
+            border-radius: 50px; font-weight: bold; box-shadow: 0 10px 30px rgba(0,255,157,0.6);
         }
         #arButton:active { transform: scale(0.95); }
     </style>
 </head>
 <body>
 
-    <a-scene id="scene"
+    <a-scene 
+        id="scene"
         background="color: #000000"
-        webxr="optionalFeatures: hit-test, local-floor;"
+        webxr="requiredFeatures: hit-test; optionalFeatures: local-floor"
+        xr-mode-ui="XRMode: ar; enterARButton: #arButton;"
         ar-hit-test="target: #planet;"
-        xr-mode-ui="enabled: false"
-        renderer="alpha: true; antialias: true">
+    >
 
-        <!-- Luces -->
+        <!-- Luces realistas -->
         <a-entity light="type: ambient; intensity: 0.7"></a-entity>
         <a-entity light="type: directional; intensity: 1.4; position: 5 10 5"></a-entity>
 
-        <!-- Planeta (se coloca con un toque) -->
+        <!-- Planeta (aparece al tocar) -->
         <a-entity id="planet" scale="0.28 0.28 0.28" visible="false">
-            <!-- Tierra -->
-            <a-sphere radius="1" 
+            <a-sphere 
+                radius="1" 
                 src="https://www.solarsystemscope.com/textures/download/2k_earth_daymap.jpg"
                 material="roughness: 0.8; metalness: 0.1"
                 animation="property: rotation; to: 0 360 0; loop: true; dur: 45000; easing: linear">
             </a-sphere>
-            <!-- Nubes (giran más rápido) -->
-            <a-sphere radius="1.015" 
+            <a-sphere 
+                radius="1.015" 
                 src="https://www.solarsystemscope.com/textures/download/2k_earth_clouds.jpg"
                 material="transparent: true; opacity: 0.9; side: double"
                 animation="property: rotation; to: 0 360 0; loop: true; dur: 32000; easing: linear">
@@ -58,11 +56,11 @@
         <a-camera></a-camera>
     </a-scene>
 
-    <!-- Overlay con botón siempre visible -->
+    <!-- Pantalla inicial con botón grande -->
     <div id="overlay">
         <h1>🌍 Planeta AR</h1>
-        <p><strong>1.</strong> Toca el botón verde</p>
-        <p><strong>2.</strong> Apunta a una superficie plana con buena luz</p>
+        <p><strong>1.</strong> Toca INICIAR AR</p>
+        <p><strong>2.</strong> Apunta a piso/mesa con buena luz</p>
         <p><strong>3.</strong> Toca la pantalla para colocar el planeta</p>
         <button id="arButton">🚀 INICIAR AR</button>
     </div>
@@ -70,23 +68,16 @@
     <script>
         const scene = document.querySelector('#scene');
         const overlay = document.getElementById('overlay');
-        const arButton = document.getElementById('arButton');
 
-        arButton.addEventListener('click', async () => {
-            if (scene.is('ar-mode')) return;
-            try {
-                await scene.enterVR();   // A-Frame detecta AR automáticamente
-            } catch (e) {
-                alert("AR no disponible en este navegador.\n\nPrueba en Chrome de Android — ¡funciona perfecto! 🌍");
-            }
-        });
-
-        // Ocultar overlay cuando entra en AR
         scene.addEventListener('enter-vr', () => {
             overlay.style.display = 'none';
         });
         scene.addEventListener('exit-vr', () => {
             overlay.style.display = 'flex';
+        });
+
+        scene.addEventListener('enter-vr-failed', () => {
+            alert("❌ AR no disponible.\n\nUsa Chrome en Android y asegúrate de tener ARCore actualizado.");
         });
     </script>
 </body>
