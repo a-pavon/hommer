@@ -2,66 +2,109 @@
 <html lang="es">
 <head>
     <meta charset="utf-8">
-    <title>🌍 Planeta AR</title>
+    <title>🌍 Planeta AR con GPS</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
+    <script src="https://aframe.io/releases/1.6.0/aframe.min.js"></script>
+    <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
     <style>
         body { margin:0; overflow:hidden; background:#000; font-family:system-ui; }
-        model-viewer {
-            width: 100vw;
-            height: 100vh;
-            background-color: #000000;
-        }
         #overlay {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            z-index: 10; display: flex; flex-direction: column;
+            z-index: 100; display: flex; flex-direction: column;
             align-items: center; justify-content: center;
-            text-align: center; color: white; background: rgba(0,0,0,0.75);
+            text-align: center; color: white; background: rgba(0,0,0,0.85);
         }
-        #overlay h1 { font-size: 3em; margin: 0 0 20px; }
-        #overlay p { font-size: 1.3em; margin: 10px 0; }
-        #arButton {
-            margin-top: 40px; padding: 18px 50px; font-size: 1.6em;
+        #overlay h1 { font-size: 2.8em; margin: 10px 0; }
+        button { margin-top: 30px; padding: 18px 50px; font-size: 1.6em;
             background: #00ff9d; color: #000; border: none;
             border-radius: 50px; font-weight: bold; box-shadow: 0 0 40px #00ff9d;
+        }
+        #info {
+            position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%);
+            background: rgba(0,0,0,0.7); padding: 10px 20px; border-radius: 10px;
+            font-size: 1.1em; z-index: 101; display: none;
         }
     </style>
 </head>
 <body>
 
-    <model-viewer id="viewer"
-        src="https://raw.githubusercontent.com/google/model-viewer/master/packages/shared-assets/models/RobotExpressive.glb"
-        ar
-        ar-modes="scene-viewer webxr quick-look"
-        camera-controls
-        auto-rotate
-        rotation-per-second="25deg"
-        shadow-intensity="1"
-        exposure="0.8"
-        alt="Planeta girando en AR"
-        style="background-color: #000000;">
-    </model-viewer>
+    <a-scene>
+        <!-- Luces -->
+        <a-entity light="type: ambient; intensity: 0.7"></a-entity>
+        <a-entity light="type: directional; intensity: 1.4; position: 5 10 5"></a-entity>
 
+        <!-- Cámara GPS -->
+        <a-camera gps-new-camera="gpsMinDistance: 5; positionMinAccuracy: 10"></a-camera>
+
+        <!-- Planeta (se posiciona con GPS) -->
+        <a-entity id="planet" gps-new-entity-place="latitude: 0; longitude: 0" scale="12 12 12" position="0 25 0" look-at="[gps-new-camera]">
+            <!-- Tierra -->
+            <a-sphere radius="1" 
+                src="https://www.solarsystemscope.com/textures/download/2k_earth_daymap.jpg"
+                animation="property: rotation; to: 0 360 0; loop: true; dur: 45000; easing: linear">
+            </a-sphere>
+            <!-- Nubes -->
+            <a-sphere radius="1.015" 
+                src="https://www.solarsystemscope.com/textures/download/2k_earth_clouds.jpg"
+                material="transparent: true; opacity: 0.9; side: double"
+                animation="property: rotation; to: 0 360 0; loop: true; dur: 32000; easing: linear">
+            </a-sphere>
+        </a-entity>
+    </a-scene>
+
+    <!-- Pantalla inicial -->
     <div id="overlay">
-        <h1>🌍 Planeta AR</h1>
-        <p><strong>1.</strong> Toca el botón verde</p>
-        <p><strong>2.</strong> Apunta a piso o mesa con buena luz</p>
-        <p><strong>3.</strong> El planeta aparece y gira automáticamente</p>
-        <button id="arButton">🚀 VER EN AR</button>
+        <h1>🌍 Planeta AR con GPS</h1>
+        <p><strong>1.</strong> Toca el botón</p>
+        <p><strong>2.</strong> Acepta permiso de ubicación</p>
+        <p><strong>3.</strong> Apunta hacia el norte para ver el planeta</p>
+        <button id="startBtn">🚀 COLOCAR PLANETA CON GPS</button>
     </div>
 
+    <!-- Info en pantalla -->
+    <div id="info"></div>
+
     <script>
-        const viewer = document.getElementById('viewer');
         const overlay = document.getElementById('overlay');
+        const info = document.getElementById('info');
+        const startBtn = document.getElementById('startBtn');
+        const planet = document.getElementById('planet');
 
-        document.getElementById('arButton').addEventListener('click', () => {
-            viewer.activateAR();
-        });
-
-        viewer.addEventListener('ar-status', (event) => {
-            if (event.detail.status === 'session-started') {
-                overlay.style.display = 'none';
+        startBtn.addEventListener('click', () => {
+            if (!navigator.geolocation) {
+                alert("❌ Tu navegador no soporta GPS");
+                return;
             }
+
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    const userLat = position.coords.latitude;
+                    const userLon = position.coords.longitude;
+
+                    // Coloca el planeta \~50 metros al norte
+                    const planetLat = userLat + 0.00045;
+                    const planetLon = userLon;
+
+                    planet.setAttribute('gps-new-entity-place', `latitude: ${planetLat}; longitude: ${planetLon}`);
+
+                    overlay.style.display = 'none';
+                    info.style.display = 'block';
+                    info.innerHTML = `📍 Planeta colocado 50m al norte de ti<br>Lat: ${userLat.toFixed(6)} | Lon: ${userLon.toFixed(6)}<br>Apunta hacia el NORTE`;
+
+                    // Pequeño mensaje después de 8 segundos
+                    setTimeout(() => {
+                        info.innerHTML = `🌍 ¡Planeta listo! Apunta hacia el norte`;
+                    }, 8000);
+                },
+                (error) => {
+                    let msg = "Error de ubicación: ";
+                    if (error.code === 1) msg += "Permiso denegado";
+                    else if (error.code === 2) msg += "Posición no disponible";
+                    else msg += "Error desconocido";
+                    alert(msg + "\n\nPrueba al aire libre con buena señal GPS");
+                },
+                { enableHighAccuracy: true, maximumAge: 0, timeout: 10000 }
+            );
         });
     </script>
 </body>
