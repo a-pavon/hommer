@@ -4,80 +4,64 @@
     <meta charset="utf-8">
     <title>🌍 Planeta AR</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <script src="https://aframe.io/releases/1.7.0/aframe.min.js"></script>
+    <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
     <style>
         body { margin:0; overflow:hidden; background:#000; font-family:system-ui; }
+        model-viewer {
+            width: 100vw;
+            height: 100vh;
+            background-color: #000000;
+        }
         #overlay {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            z-index: 100; display: flex; flex-direction: column;
+            z-index: 10; display: flex; flex-direction: column;
             align-items: center; justify-content: center;
-            text-align: center; color: white; background: rgba(0,0,0,0.65);
+            text-align: center; color: white; background: rgba(0,0,0,0.75);
         }
-        #overlay h1 { font-size: 2.8em; margin: 0 0 10px; }
-        #overlay p { font-size: 1.2em; max-width: 85%; margin: 8px 0; }
+        #overlay h1 { font-size: 3em; margin: 0 0 20px; }
+        #overlay p { font-size: 1.3em; margin: 10px 0; }
         #arButton {
-            margin-top: 40px; padding: 18px 50px; font-size: 1.5em;
+            margin-top: 40px; padding: 18px 50px; font-size: 1.6em;
             background: #00ff9d; color: #000; border: none;
-            border-radius: 50px; font-weight: bold; box-shadow: 0 10px 30px rgba(0,255,157,0.6);
+            border-radius: 50px; font-weight: bold; box-shadow: 0 0 40px #00ff9d;
         }
-        #arButton:active { transform: scale(0.95); }
     </style>
 </head>
 <body>
 
-    <a-scene 
-        id="scene"
-        background="color: #000000"
-        webxr="requiredFeatures: hit-test; optionalFeatures: local-floor"
-        xr-mode-ui="XRMode: ar; enterARButton: #arButton;"
-        ar-hit-test="target: #planet;"
-    >
+    <model-viewer id="viewer"
+        src="https://raw.githubusercontent.com/google/model-viewer/master/packages/shared-assets/models/RobotExpressive.glb"
+        ar
+        ar-modes="scene-viewer webxr quick-look"
+        camera-controls
+        auto-rotate
+        rotation-per-second="25deg"
+        shadow-intensity="1"
+        exposure="0.8"
+        alt="Planeta girando en AR"
+        style="background-color: #000000;">
+    </model-viewer>
 
-        <!-- Luces realistas -->
-        <a-entity light="type: ambient; intensity: 0.7"></a-entity>
-        <a-entity light="type: directional; intensity: 1.4; position: 5 10 5"></a-entity>
-
-        <!-- Planeta (aparece al tocar) -->
-        <a-entity id="planet" scale="0.28 0.28 0.28" visible="false">
-            <a-sphere 
-                radius="1" 
-                src="https://www.solarsystemscope.com/textures/download/2k_earth_daymap.jpg"
-                material="roughness: 0.8; metalness: 0.1"
-                animation="property: rotation; to: 0 360 0; loop: true; dur: 45000; easing: linear">
-            </a-sphere>
-            <a-sphere 
-                radius="1.015" 
-                src="https://www.solarsystemscope.com/textures/download/2k_earth_clouds.jpg"
-                material="transparent: true; opacity: 0.9; side: double"
-                animation="property: rotation; to: 0 360 0; loop: true; dur: 32000; easing: linear">
-            </a-sphere>
-        </a-entity>
-
-        <a-camera></a-camera>
-    </a-scene>
-
-    <!-- Pantalla inicial con botón grande -->
     <div id="overlay">
         <h1>🌍 Planeta AR</h1>
-        <p><strong>1.</strong> Toca INICIAR AR</p>
-        <p><strong>2.</strong> Apunta a piso/mesa con buena luz</p>
-        <p><strong>3.</strong> Toca la pantalla para colocar el planeta</p>
-        <button id="arButton">🚀 INICIAR AR</button>
+        <p><strong>1.</strong> Toca el botón verde</p>
+        <p><strong>2.</strong> Apunta a piso o mesa con buena luz</p>
+        <p><strong>3.</strong> El planeta aparece y gira automáticamente</p>
+        <button id="arButton">🚀 VER EN AR</button>
     </div>
 
     <script>
-        const scene = document.querySelector('#scene');
+        const viewer = document.getElementById('viewer');
         const overlay = document.getElementById('overlay');
 
-        scene.addEventListener('enter-vr', () => {
-            overlay.style.display = 'none';
-        });
-        scene.addEventListener('exit-vr', () => {
-            overlay.style.display = 'flex';
+        document.getElementById('arButton').addEventListener('click', () => {
+            viewer.activateAR();
         });
 
-        scene.addEventListener('enter-vr-failed', () => {
-            alert("❌ AR no disponible.\n\nUsa Chrome en Android y asegúrate de tener ARCore actualizado.");
+        viewer.addEventListener('ar-status', (event) => {
+            if (event.detail.status === 'session-started') {
+                overlay.style.display = 'none';
+            }
         });
     </script>
 </body>
