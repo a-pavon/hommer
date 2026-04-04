@@ -2,70 +2,62 @@
 <html lang="es">
 <head>
   <meta charset="utf-8">
-  <title>Prueba AR - Cubo 5m en tu ubicación actual</title>
+  <title>Prueba AR - Cubo 5m (Versión Corregida)</title>
   <script src="https://aframe.io/releases/1.6.0/aframe.min.js"></script>
   <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
   <style>
     body { margin: 0; overflow: hidden; }
     #info {
-      position: absolute; top: 10px; left: 10px; color: white; background: rgba(0,0,0,0.6);
-      padding: 10px; border-radius: 8px; font-family: Arial; z-index: 100;
+      position: absolute; top: 10px; left: 10px; color: white; background: rgba(0,0,0,0.85);
+      padding: 15px; border-radius: 10px; font-family: Arial; z-index: 100; max-width: 90%;
     }
   </style>
 </head>
 <body>
 
-  <div id="info">Obteniendo tu ubicación GPS...</div>
+  <div id="info">Obteniendo ubicación GPS...</div>
 
   <a-scene 
     vr-mode-ui="enabled: false" 
     arjs="sourceType: webcam; videoTexture: true; debugUIEnabled: false;" 
     renderer="antialias: true; alpha: true">
 
-    <!-- Cámara con GPS -->
-    <a-camera gps-new-camera="gpsMinDistance: 5" rotation-reader></a-camera>
+    <a-camera gps-new-camera="gpsMinDistance: 3" rotation-reader></a-camera>
 
   </a-scene>
 
   <script>
-    // Obtener ubicación actual del celular
     navigator.geolocation.getCurrentPosition(
       (position) => {
         const lat = position.coords.latitude;
         const lon = position.coords.longitude;
 
-        // Pequeño offset para que el cubo esté \~15-20 metros al frente (fácil de ver)
-        const offsetLat = 0.00015;   // \~15-20 metros
-        const offsetLon = 0.00005;
+        document.getElementById('info').innerHTML = `
+          ✅ GPS OK<br>
+          Lat: ${lat.toFixed(6)}<br>
+          Lon: ${lon.toFixed(6)}<br><br>
+          <strong>INSTRUCCIONES:</strong><br>
+          1. Gira el teléfono lentamente 360°<br>
+          2. Camina 5-10 metros en cualquier dirección<br>
+          3. Busca un cubo rojo gigante
+        `;
 
-        const targetLat = lat + offsetLat;
-        const targetLon = lon + offsetLon;
-
-        document.getElementById('info').innerHTML = 
-          `✅ Ubicación obtenida<br>Lat: ${lat.toFixed(6)}<br>Lon: ${lon.toFixed(6)}<br><br>Cubo de 5m colocado cerca de ti`;
-
-        // Crear el cubo de 5 metros
         const scene = document.querySelector('a-scene');
-        const box = document.createElement('a-box');
 
-        box.setAttribute('gps-new-entity-place', `latitude: ${targetLat}; longitude: ${targetLon};`);
-        box.setAttribute('material', 'color: #ff0000; opacity: 0.9;');
-        box.setAttribute('scale', '5 5 5');           // 5 metros exactos
-        box.setAttribute('look-at', '[gps-camera]');  // Siempre mira hacia ti
-        box.setAttribute('position', '0 2.5 0');      // Elevado para que no esté en el suelo
+        const box = document.createElement('a-box');
+        box.setAttribute('gps-new-entity-place', `latitude: ${lat}; longitude: ${lon};`);
+        box.setAttribute('material', 'color: red; emissive: #ff0000; emissiveIntensity: 0.6;');
+        box.setAttribute('scale', '5 5 5');
+        box.setAttribute('position', '0 3 0');           // elevado para que se vea mejor
+        box.setAttribute('animation', 'property: scale; to: 5.3 5.3 5.3; dur: 800; easing: easeInOutSine; loop: true; dir: alternate;');
 
         scene.appendChild(box);
-
-        console.log('Cubo colocado en:', targetLat, targetLon);
       },
       (error) => {
-        console.error(error);
-        document.getElementById('info').innerHTML = 
-          `❌ Error de GPS<br>Código: ${error.code}<br>Por favor permite la ubicación`;
+        document.getElementById('info').innerHTML = `❌ Error GPS: ${error.message}`;
       },
-      { enableHighAccuracy: true, maximumAge: 0, timeout: 10000 }
+      { enableHighAccuracy: true, maximumAge: 0, timeout: 15000 }
     );
   </script>
-
 </body>
 </html>
